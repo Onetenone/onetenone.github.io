@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <meta
+        http-equiv="X-UA-Compatible"
+        content="ie=edge"
+    >
+    <link
+        rel="stylesheet"
+        href="./css/index.css"
+    >
+    <title>完整轮播图</title>
+
+</head>
+
+<body>
+    <div id="box">
+        <div id="photo">
+            <ul>
+                <li><img src="./images/peri1.jpg"></li>
+                <li><img src="./images/peri2.jpg"></li>
+                <li><img src="./images/peri3.jpg"></li>
+                <li><img src="./images/peri4.jpg"></li>
+                <li><img src="./images/peri5.jpg"></li>
+                <li><img src="./images/peri6.jpg"></li>
+                <li><img src="./images/peri7.jpg"></li>
+                <li><img src="./images/peri8.jpg"></li>
+                <li><img src="./images/peri9.jpg"></li>
+            </ul>
+            <ol></ol>
+        </div>
+        <div id="arr"><span id="left">&lt;</span>
+            <span id="right">&gt;</span>
+        </div>
+    </div>
+    <script src="./js/common.js"></script>
+    <script>
+        //获取最外面的div
+        var box = my$("box");
+        //获取相框
+        var photobj = box.children[0];
+        //获取相框的宽度
+        var photoWidth = photobj.offsetWidth;
+        //获取相框下的ul元素
+        var ulobj = photobj.children[0];
+        //获取所有的li
+        var list = ulobj.children;
+        //获取相框下的ol元素
+        var olobj = photobj.children[1];
+        var pic = 0;
+        var timeId = setInterval(enter, 1000)
+        for (var i = 0; i < list.length; i++) {
+            var liobj = document.createElement("li");
+            olobj.appendChild(liobj);
+            liobj.innerHTML = (i + 1);
+            liobj.setAttribute("index", i);
+            liobj.onmouseover = function () {
+                for (var j = 0; j < olobj.children.length; j++) {
+                    olobj.children[j].removeAttribute("class");
+                };
+                this.className = "current";
+                pic = this.getAttribute("index");
+                changeAnimate(ulobj, -pic * photoWidth);
+            };
+        };
+        olobj.children[0].className = "current";
+        ulobj.appendChild(ulobj.children[0].cloneNode(true));
+        box.onmouseover = function () {
+            my$("arr").style.display = "block";
+            clearInterval(timeId);
+        };
+        box.onmouseout = function () {
+            my$("arr").style.display = "none";
+            timeId = setInterval(enter, 1000);
+        };
+        my$("right").onclick = enter;
+
+        function enter() {
+            if (pic == list.length - 1) {
+                pic = 0;
+                ulobj.style.left = 0 + "px";
+            };
+
+            pic++;
+            changeAnimate(ulobj, -pic * photoWidth);
+            if (pic == list.length - 1) {
+                //把最后一个按钮的颜色干掉
+                olobj.children[olobj.children.length - 1].className = "";
+                //把第一个按钮设置上
+                olobj.children[0].className = "current";
+            } else {
+                //干掉所有按钮的颜色
+                for (var i = 0; i < olobj.children.length; i++) {
+                    olobj.children[i].removeAttribute("class");
+                };
+                olobj.children[pic].className = "current";
+            };
+
+        };
+        my$("left").onclick = function () {
+            if (pic == 0) {
+                pic = 9;
+                ulobj.style.left = -pic * photoWidth + "px";
+            };
+            pic--;
+            changeAnimate(ulobj, -pic * photoWidth);
+            for (var i = 0; i < olobj.children.length; i++) {
+                olobj.children[i].removeAttribute("class");
+            };
+            olobj.children[pic].className = "current";
+        };
+    </script>
+</body>
+
+</html>
