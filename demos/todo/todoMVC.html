@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <meta
+    http-equiv="X-UA-Compatible"
+    content="ie=edge"
+  >
+  <link
+    rel="stylesheet"
+    href="./css/index.css"
+  >
+  <link
+    href="./favicon.ico"
+    rel="shortcut icon"
+  >
+  <title>TodoMVC</title>
+</head>
+
+<body>
+  <section class="todoapp">
+    <header class="header">
+      <h1>备忘录</h1>
+      <input
+        autofocus="autofocus"
+        autocomplete="off"
+        placeholder="您想干点啥?"
+        class="new-todo"
+        v-model.trim="inputTodo"
+        @keyup.enter="addTodo"
+      >
+    </header>
+    <section
+      class="main"
+      style=""
+    ><input
+        id="toggle-all"
+        type="checkbox"
+        class="toggle-all"
+        v-model="isCheckAll"
+        @change="setCheckAll"
+      > <label for="toggle-all"></label>
+      <ul class="todo-list">
+        <li
+          class="todo"
+          v-for="(item, index) in screenList"
+          :key="index"
+          :class="{completed:item.completed,editing:item==editTodo}"
+          @dblclick="enterEdit(item)"
+        >
+          <div class="view"><input
+              type="checkbox"
+              class="toggle"
+              v-model="item.completed"
+            >
+            <label>{{item.todoValue}}</label> <button
+              class="destroy"
+              @click="delTodo(index)"
+            ></button></div>
+          <input
+            type="text"
+            class="edit"
+            @blur="editTodo=undefined"
+            @keyup.enter="editTodo=undefined"
+            v-model="item.todoValue"
+          >
+        </li>
+      </ul>
+    </section>
+    <footer
+      class="footer"
+      style=""
+    ><span
+        v-show="undoneNum!=0"
+        class="todo-count"
+      ><strong>{{undoneNum}}</strong> {{undoneNum>1?`items`:`item`}} left
+      </span>
+      <ul class="filters">
+        <li><a
+            href="#/all"
+            :class="{selected:sign==`All`}"
+            @click="sign=`All`"
+          >All</a></li>
+        <li><a
+            href="#/active"
+            :class="{selected:sign==`Active`}"
+            @click="sign=`Active`"
+          >Active</a></li>
+        <li><a
+            href="#/completed"
+            :class="{selected:sign==`Completed`}"
+            @click="sign=`Completed`"
+          >Completed</a></li>
+      </ul> <button
+        class="clear-completed"
+        style=""
+        @click="todoAllAchieve"
+      >
+        Clear completed
+      </button>
+    </footer>
+  </section>
+  <footer class="info">
+    <p>双击编辑代办事项</p>
+    <p>感谢<a href="http://evanyou.me">Evan You</a></p>
+    <p>感谢<a href="http://todomvc.com">TodoMVC</a></p>
+    <p><a href="http://todomvc.com">关于我</a></p>
+
+  </footer>
+  <!-- <script>
+    // tell the embed parent frame the height of the content
+    if (window.parent && window.parent.parent) {
+      window.parent.parent.postMessage(["resultsFrame", {
+        height: document.body.getBoundingClientRect().height,
+        slug: "4dr2fLb7"
+      }], "*")
+    }
+
+    // always overwrite window.name, in case users try to set it manually
+    window.name = "result"
+  </script> -->
+  <script src="./vue/vue.js"></script>
+  <script>
+    let vm = new Vue({
+      el: ".todoapp",
+      data: {
+        todoList: [],
+        inputTodo: "",
+        isCheckAll: false,
+        sign: "All",
+        editTodo: undefined
+      },
+      computed: {
+        undoneNum() {
+          let count = 0;
+          this.todoList.forEach(v => {
+            if (v.completed == false) {
+              count++;
+            };
+          });
+          return count;
+        },
+        screenList() {
+          if (this.sign == "All") {
+            return this.todoList
+          } else if (this.sign == "Active") {
+            let screenArr = [];
+            this.todoList.forEach(v => {
+              if (v.completed == false) {
+                screenArr.push(v);
+              };
+            });
+            return screenArr;
+          } else {
+            let screenArr = [];
+            this.todoList.forEach(v => {
+              if (v.completed == true) {
+                screenArr.push(v);
+              };
+            });
+            return screenArr;
+          };
+        },
+      },
+      watch: {
+        todoList: {
+          handler: function (newValue, oldValue) {
+            let checkNum = 0;
+            this.todoList.forEach(v => {
+              if (v.completed == true) {
+                checkNum++
+              };
+            })
+            this.isCheckAll = this.todoList.length == checkNum
+          },
+          deep: true
+        }
+      },
+      methods: {
+        addTodo() {
+          if (this.inputTodo == "") {
+            return "不能为空";
+          };
+          this.todoList.unshift({
+            todoValue: this.inputTodo,
+            completed: false
+          });
+          this.inputTodo = "";
+        },
+        delTodo(index) {
+          if (window.confirm("您确定要删除此项吗?")) {
+            this.todoList.splice(index, 1);
+          } else {};
+        },
+        todoAllAchieve() {
+          if (window.confirm("您确定这样做吗?")) {
+            for (let i = this.todoList.length - 1; i >= 0; i--) {
+              if (this.todoList[i].completed == true) {
+                this.todoList.splice(i, 1);
+              };
+            };
+          };
+        },
+        setCheckAll() {
+          this.todoList.forEach(v => {
+            v.completed = this.isCheckAll;
+          })
+        },
+        enterEdit(item) {
+          this.editTodo = item;
+        },
+      },
+      created() {
+        this.todoList = JSON.parse(window.localStorage.getItem("todoAll")) || [{
+          todoValue: "测试demo",
+          completed: false
+        }];
+      },
+    });
+    window.onbeforeunload = function () {
+      window.localStorage.setItem("todoAll", JSON.stringify(vm.todoList));
+    }
+  </script>
+</body>
+
+</html>
